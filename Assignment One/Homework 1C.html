@@ -76,22 +76,21 @@
 				}
 			}
 				//at every frame, you apply the rules         
-			if (C.r >= 0.5) { //cell is alive
-				if (cnt == 2 || cnt == 3) {
+			if (C.r >= 0.5 || C.b >=0.5) { //cell is alive
+				if (cnt == 1 || cnt == 3) {
 					//Any live cell with two or three live neighbours lives on to the next generation.
-				
-					gl_FragColor = vec4(1.0,.0,1.0,1.0);
+					gl_FragColor = vec4(0.0,0.0,1.0,1.0);
 				} else {
 					//Any live cell with fewer than two live neighbours dies, as if caused by underpopulation.
 					//Any live cell with more than three live neighbours dies, as if by overpopulation.
 
-					gl_FragColor = vec4(0.0,0.0,1.0,1.0);
+					gl_FragColor = vec4(0.0,0.0,0.0,1.0);
 				}
 			} else { //cell is dead
-				if (cnt == 3) {
+				if (cnt == 2) {
 					//Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
 
-					gl_FragColor = vec4(1.0,.0,1.0,1.0);
+					gl_FragColor = vec4(1.0,1.0,1.0,1.0);
 				} else {
 					gl_FragColor = vec4(0.0,0.0,0.0,1.0);
 
@@ -216,7 +215,6 @@ function createDataTexture() {
 
 	var size = resX * resY;
 	var data = new Uint8Array( 4 * size );
-	var state = 5;
 
 
 	for ( var i = 0; i < size; i++ ) {
@@ -224,16 +222,16 @@ function createDataTexture() {
 		var stride = i * 4;
 
 		if (Math.random() < 0.5) {
-			data[ stride ] = Math.round(Math.random(1,state));
-			data[ stride + 1 ] = Math.round(Math.random(1,state));
-			data[ stride + 2 ] = Math.round(Math.random(1,state));
-			data[ stride + 3 ] = Math.round(Math.random(1,state));
+			data[ stride ] = 255;
+			data[ stride + 1 ] = 255;
+			data[ stride + 2 ] = 255;
+			data[ stride + 3 ] = 255;
 		}
 		else {
-			data[ stride ] = 1;
-			data[ stride + 1 ] = 1;
-			data[ stride + 2 ] = 1;
-			data[ stride + 3 ] = Math.round(Math.random(1,state));
+			data[ stride ] = 0;
+			data[ stride + 1 ] = 0;
+			data[ stride + 2 ] = 0;
+			data[ stride + 3 ] = 255;
 		}
 	}
 
