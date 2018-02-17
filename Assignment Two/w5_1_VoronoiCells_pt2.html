@@ -1,0 +1,230 @@
+
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>demo - shader</title>
+		<meta charset="utf-8">
+		<style>
+			body {
+			  margin: 0px;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+	<body>
+
+		<div id="container"></div>
+
+    <script src="js/three.js"></script>
+		
+
+    <script id="vertexShader" type="x-shader/x-vertex">
+
+	uniform mat4 modelMatrix;
+	uniform mat4 viewMatrix;
+      	uniform mat4 projectionMatrix;
+
+     	attribute vec3 position;
+	attribute vec2 uv;
+	attribute vec3 normal;
+
+
+        precision mediump float;
+
+
+	void main() {
+       
+       		gl_Position = projectionMatrix  * viewMatrix * modelMatrix  * vec4( position, 1.0 );
+        }
+
+	</script>
+
+	<script id="fragmentShader" type="x-shader/x-fragment">
+
+precision mediump float;
+
+uniform vec2 u_resolution;
+uniform vec2 u_mouse;
+uniform float u_val;
+uniform vec2 pt1;
+uniform vec2 pt2;
+uniform vec2 pt3;
+uniform vec2 pt4;
+
+
+void main() {
+    vec2 st = gl_FragCoord.xy/(u_resolution.xy);
+
+    // Cell positions
+    vec2 point[5];
+    point[0] = pt1; 
+    point[1] = pt2;
+    point[2] = pt3; 
+    point[3] = pt4; 
+    point[4] = u_mouse.xy;
+
+    float m_dist = 100.;  // minimum distance
+    vec2 m_point;       // minimum position
+
+    vec4 colorA = vec4(0.);
+    vec4 colorB = vec4(0.);
+
+
+    // Iterate through the points positions
+    float dist = distance(st, point[0]);
+    m_dist = dist;
+    m_point = point[0];
+
+
+    for (int i = 1; i < 5; i++) {
+    	dist = distance(st, point[i]);
+
+	if ( dist < m_dist ) {
+
+            // Keep the closer distance
+            m_dist = dist;
+
+            // Keep the position of the closer point
+            m_point = point[i];
+	}     
+     }
+
+
+    if (m_point == point[0]) {
+	colorA = vec4(1.0,0.0,0.0,1.0);
+	colorB = vec4(0.0,1.0,0.0,1.0);
+
+    } else if (m_point == point[1]) {
+	colorA = vec4(0.0,1.0,0.0,1.0);
+	colorB = vec4(0.0,0.0,1.0,1.0);
+
+    } else if (m_point == point[2]) {
+	colorA = vec4(0.0,0.0,1.0,1.0);
+	colorB = vec4(1.0,0.0,0.0,1.0);
+
+    } else if (m_point == point[3]) {
+	colorA = vec4(1.0,1.0,0.0,1.0);
+	colorB = vec4(0.0,1.0,1.0,1.0);
+
+    } else if (m_point == point[4]) {
+	colorA = vec4(1.0,0.0,1.0,1.0);
+	colorB = vec4(1.0,1.0,0.0,1.0);
+
+    }
+    
+    gl_FragColor = mix(colorA, colorB, u_val); 
+
+}
+	</script>
+
+	<script>
+
+
+var container;
+
+var camera, scene, renderer;
+
+var vs = document.getElementById( 'vertexShader' ).textContent;
+var fs = document.getElementById( 'fragmentShader' ).textContent;
+
+var mouseX = 0.0;
+var mouseY = 0.0;
+
+init();
+animate();
+
+function init() {
+
+	container = document.getElementById( 'container' );
+
+	var width = window.innerWidth;
+	var height = window.innerHeight;
+
+
+	camera = new THREE.OrthographicCamera( width / -2, width / 2, height / 2, height / -2, 0.1, 1000 );
+	camera.position.z = 10;
+
+	scene = new THREE.Scene();
+
+
+	// geometry
+
+	var geometry1 = new THREE.PlaneGeometry( width, height, 1, 1 ); //full screen quad
+
+	// material
+
+	var uniforms1 =  {
+		u_resolution: { type: "v2", value: new THREE.Vector2(width, height) },
+		u_mouse: { type: "v2", value: new THREE.Vector2(mouseX, mouseY)  },
+		u_val: { type: "f", value: 0.0  },
+		pt1 : { type: "v2", value: new THREE.Vector2(Math.random(), Math.random())  },
+		pt2 : { type: "v2", value: new THREE.Vector2(Math.random(), Math.random())  },
+		pt3 : { type: "v2", value: new THREE.Vector2(Math.random(), Math.random())  },
+		pt4 : { type: "v2", value: new THREE.Vector2(Math.random(), Math.random())  },
+
+	};
+
+
+	var material1 = new THREE.RawShaderMaterial( {
+
+		uniforms: uniforms1,
+		vertexShader: vs,
+		fragmentShader: fs,
+
+	} );
+
+
+	var mesh1 = new THREE.Mesh( geometry1, material1 ); //fullscreen quad with GLSL shader
+	scene.add( mesh1 );
+
+
+	renderer = new THREE.WebGLRenderer();
+	renderer.setSize( window.innerWidth, window.innerHeight );
+	container.appendChild( renderer.domElement );
+
+
+        window.addEventListener( 'resize', onWindowResize, false );
+	document.addEventListener('mousemove', onDocumentMouseMove, false);
+	
+			}
+
+			function onWindowResize( event ) {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+			}
+			
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+				render();
+
+			}
+
+			function render() {
+
+				var time = performance.now();
+
+				var object0 = scene.children[ 0 ];
+				object0.material.uniforms.u_mouse.value = new THREE.Vector2(mouseX, mouseY);
+
+				object0.material.uniforms.u_val.value = 0.5 + (Math.sin(time * 0.001) * 0.5);
+				renderer.render( scene, camera );
+			}
+
+
+	function onDocumentMouseMove(event) {
+		event.preventDefault();
+		mouseX = (event.clientX) / window.innerWidth ;
+		mouseY = 1.0-(event.clientY) / window.innerHeight ;
+	}
+
+
+		</script>
+
+	</body>
+</html>
+
