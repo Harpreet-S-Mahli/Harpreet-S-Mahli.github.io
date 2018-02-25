@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - blender -json</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				background:#777;
+				padding:0;
+				margin:0;
+				overflow:hidden;
+			}
+
+			#info {
+				position: absolute;
+				top: 0px;
+				width: 100%;
+				color: #ffffff;
+			}
+
+		</style>
+	</head>
+	<body>
+
+		<div id="container"></div>
+
+		<script src="js/three.js"></script>
+		<script src="js/OBJLoader.js"></script>
+		<script src="js/OrbitControls.js"></script>
+		<script src="js/dat.gui.min.js"></script>
+
+		<script src="shaders/SkyBox Shader.js"></script>
+		<script src="shaders/SkyBox FragmentShader.js"></script>
+		<script src="shaders/EnviromentMap Shader.js"></script>
+		<script src="shaders/EnviromentMap FragmentShader.js"></script>
+		<script src="shaders/Water Shader.js"></script>
+		<script src="shaders/Water FragShader.js"></script>
+		<script src="shaders/Terrian Shader.js"></script>
+		<script src="shaders/Terrian FragmentShader.js"></script>
+
+
+		<script>
+
+		var container;
+		var camera, scene, renderer;
+		var gui;
+		var skyMesh, box, santa;
+
+		var texture1 = new THREE.TextureLoader().load( 'Nathan.jpg' );
+		var texture2 = new THREE.TextureLoader().load( 'black.jpg' );
+		var texture3 = new THREE.TextureLoader().load( 'yellow.jpg' );
+		var texture4 = new THREE.TextureLoader().load( 'red.jpg' );
+
+
+		init();
+		animate();
+
+
+
+	function init() {
+
+		container = document.getElementById( 'container' );
+
+		camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 2000 );
+		var controls = new THREE.OrbitControls( camera );
+		camera.position.set( 0, 0, 15 );
+		controls.update();
+
+
+		scene = new THREE.Scene();
+
+		gui = new dat.GUI();
+
+		opt = {
+			displaceAmount: 1,
+			water_displacement:Math.PI * - 0.5,
+			displaceTime: 0.001,
+			santaYRotation: 0.001,
+			santaXRotation: 0.001,
+		};
+
+		gui.add(opt, "displaceAmount", -3, 3, .1);
+		gui.add(opt, "water_displacement",-1.6,3.1,.1);
+		gui.add(opt, "displaceTime", 0.001,0.005,.001);
+		gui.add(opt, "santaXRotation", -0.030, 0.030, .001);
+		gui.add(opt, "santaYRotation", -0.030, 0.030, .001);
+
+
+		var cubeMap = new THREE.CubeTextureLoader()
+			.setPath("./OminousNight/")
+			.load( [
+				'posx.jpg',
+				'negx.jpg',
+				'posy.jpg',
+				'negy.jpg',
+				'posz.jpg',
+				'negz.jpg'
+			] );
+		
+		var uniforms = { "tCube": { type: "t", value: cubeMap } };
+		
+
+		var material = new THREE.RawShaderMaterial( {
+				uniforms: uniforms,
+				vertexShader: skybox_vs,
+				fragmentShader: skybox_fs
+			} );
+
+
+		material.depthWrite = false;
+  			material.side = THREE.BackSide;
+		
+
+		var geometry = new THREE.BoxGeometry( 2000, 2000, 2000 );
+
+		skyMesh = new THREE.Mesh( geometry, material );
+
+		scene.add( skyMesh );
+		
+	
+		var uniforms2 = {
+	        	tCube: { type: "t", value: cubeMap },
+		};
+
+
+		var material2 = new THREE.RawShaderMaterial( {
+						uniforms: uniforms2,
+						vertexShader: enviromentmap_vs,
+						fragmentShader: enviromentmap_fs
+		} );
+
+		var uniforms3 = {
+	        	tCube: { type: "t", value: cubeMap },
+		};
+
+
+		var material3 = new THREE.RawShaderMaterial( {
+						uniforms: uniforms3,
+						vertexShader: water_vs,
+						fragmentShader: water_fs
+		} );
+		
+		var geometry1 = new THREE.PlaneGeometry( 10, 10, 400, 400 );
+		var waterplane = new THREE.PlaneGeometry(15,10,200,200);
+
+		var uniforms1 =  {
+			displaceAmt: { type: "f", value: 1 },
+			tPic: { type: "t", value: texture1  },
+			tGrass: { type: "t", value: texture2  },
+			tSnow: { type: "t", value: texture3  },
+			tHill: { type: "t", value: texture4  },
+		};
+
+
+		var material1 = new THREE.RawShaderMaterial( {
+
+			uniforms: uniforms1,
+			vertexShader: terrian_vs,
+			fragmentShader: terrian_fs,
+
+		} );
+		
+		var terrian_mesh = new THREE.Mesh( geometry1, material1 );
+		terrian_mesh.material.side = THREE.DoubleSide;
+		terrian_mesh.position.x -= 2.0;
+		scene.add( terrian_mesh );
+
+
+		var water_mesh = new THREE.Mesh(waterplane, material3);
+		water_mesh.material.side = THREE.DoubleSide;
+		water_mesh.position.y -= 5;
+		water_mesh.rotation.x += Math.PI * - 0.5;
+		scene.add(water_mesh);
+
+		
+
+		var loader = new THREE.OBJLoader(  );
+					
+		loader.load( 'SuprisedSanta.obj', function ( object ) {
+			
+			object.traverse( function ( child ) {
+				if ( child instanceof THREE.Mesh ) {
+					child.material = material2;
+				}
+			} );
+			
+			var s = 6;
+			object.scale.set( s, s, s );
+			object.position.x += 6.0;
+			object.position.y *= -1;
+			object.rotation.y = -3.14;
+
+
+			santa = object;
+			scene.add( santa );
+		} );
+
+
+	renderer = new THREE.WebGLRenderer();
+	renderer.setPixelRatio( window.devicePixelRatio );
+	renderer.setSize( window.innerWidth, window.innerHeight );
+	container.appendChild( renderer.domElement );
+
+	window.addEventListener( 'resize', onWindowResize, false );
+	document.addEventListener('mousemove', onDocumentMouseMove, false);
+
+}
+
+
+function onWindowResize( event ) {
+
+	renderer.setSize( window.innerWidth, window.innerHeight );
+
+	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.updateProjectionMatrix();
+}
+
+
+function animate() {
+
+	requestAnimationFrame( animate );
+	render();
+}
+
+
+function render() {
+
+	var time = performance.now();
+
+	var terrian_object = scene.children[ 1 ];
+	terrian_object.material.uniforms.displaceAmt.value = opt.displaceAmount * (Math.tan(time * opt.displaceTime));
+
+	var water_object = scene.children[2];
+	water_object.rotation.x = opt.water_displacement;
+
+	santa.rotation.y -= opt.santaYRotation;
+	santa.rotation.x += opt.santaXRotation;
+	renderer.render( scene, camera );
+}j
+
+function onDocumentMouseMove(event) {
+	event.preventDefault();
+
+	mouseX = (event.clientX / window.innerWidth) ;
+	mouseY = -(event.clientY / window.innerHeight) ;
+
+}
+
+
+	</script>
+	</body>
+</html>
