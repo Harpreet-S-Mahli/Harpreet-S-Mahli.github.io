@@ -7,8 +7,10 @@
 	</head>
 
 	<body>
-		<img src="BioShock Infinite.jpg" style="width:700px; height:300px;">
-		<p>We also want to try and make the shader as general and modular as possible, so parameters can be edited in Unity to create a desired effect.Based on our observations, we see that the shader used various patterns and stripes that animate over time. The patterns are could be using set values and distances, or simply a noise texture (depending on the style). There is also often a glow/bloom effect, which could be done in a similar way to the image processing assignment. Each pixel is essentially blurred around the outside of the mesh to create this effect. It also doesn’t usually have any reactions to light.
-		</p>
+		<p>Planning Our Final Project <br>Nick Warren, Harp Mahli, James Garbagnati, Nicholae Christofferson <br>For the final project, we will be creating one or more custom shaders in Unity. We will take GLSL concepts from class, and learn how to recreate them using shaders in Unity.Our main goal is to recreate a hologram shader effect, similar to the pictures below:<br></p>
+		<img src="hologram.gif" style="width:500px; height:300px;">
+		<img src="halogram.jpg" style="width:500px; height:300px;">
+		<p><br> I think its created by applying a shader to a animated geometry, probably a phong shader plus a texture shader from what we've been shown so far. The texture changes from the camera's position since the camera is in 
+		a first person view, you can see it update because you're charging your powers. However, the camera itself doesn't affect the textures, and when you enter certain area's that have low lighting, or a bright area, you see the brightness of the texture dim or brighten. <br> It's an effect that updates the pixels and texture of the shader because the texture changes throughout the game as you can charge up your power or when you upgrade it, and the lighting effects the hue of the powers as well.</p>
 	</body>
 </html>
