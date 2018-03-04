@@ -1,0 +1,112 @@
+
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Homework 3B</title>
+		<meta charset="utf-8">
+		<style>
+			body {
+			  	margin: 0px;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+<body>
+
+<div id="container"></div>
+
+    <script src="js/three.js"></script>
+
+    <!-- Loading external shaders -->
+    <script src="shaders/SignDistanceFunction Shader.js"></script>
+
+	<script>
+				
+	  	var container;
+
+		var camera, scene, renderer;
+
+		var width, height;
+		var mesh;
+		var material;
+
+
+		init();
+		animate();
+
+
+		function init() {
+
+			container = document.getElementById( 'container' );
+			renderer = new THREE.WebGLRenderer();
+			renderer.setClearColor( 0x999999 );
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			container.appendChild( renderer.domElement );
+			
+
+	        width = window.innerWidth;
+	        height = window.innerHeight;
+
+	        // 1. Create a Scene
+	        scene = new THREE.Scene();
+
+	        // 1.1 Create a camera
+	        camera = new THREE.OrthographicCamera(width/-2.0, width/2.0, height/2.0, height/-2.0, 1, 1000);
+	        camera.position.z = 5;
+
+	        // 2. Create a plane
+	        var planeSDF =  new THREE.PlaneGeometry(width,height);
+
+		    var shaderInput = {
+		        resolution: {type: "f", value: new THREE.Vector2(width,height)},
+		        time: { type: "f", value: 0.0},
+		        lightTime: { type: "f", value: 0.0}
+		    };
+
+		    var material = new THREE.ShaderMaterial({
+		        uniforms: shaderInput,
+		        vertexShader: sphereDFVShader,
+		        fragmentShader: sphereDFFShader
+		    });
+
+		    var mesh = new THREE.Mesh(planeSDF, material);
+
+	        // 3. Add cube to the scene
+	        scene.add(mesh);
+		}
+
+
+
+		function animate() {
+
+			requestAnimationFrame( animate );
+
+			var object = scene.children[0];
+			object.material.uniforms.time.value += 0.005;
+			object.material.uniforms.lightTime.value += 0.003;
+
+			render();
+
+		}
+
+		function render() {
+
+			renderer.render( scene, camera );
+
+		}
+
+
+		function onWindowResize( event ) {
+
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+
+			renderer.setSize( window.innerWidth, window.innerHeight );
+
+		}
+
+		</script>
+
+	</body>
+</html>
+
