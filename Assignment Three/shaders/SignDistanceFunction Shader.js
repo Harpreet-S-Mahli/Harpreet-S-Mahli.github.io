@@ -125,15 +125,14 @@ float sdTriPrism( vec3 p )
 }
 
   float sceneSDF(vec3 samplePoint) {
-     samplePoint = rotateY(time / 2.0) * samplePoint;
      samplePoint = rotateX(time/2.0) * samplePoint;
     
-    float cylinderRadius = 0.4 + (1.0 - 0.4)/ 2.0;
+    float cylinderRadius = 0.2;
     float sphereDist = sphereSDF(samplePoint);
-    float cylinder1 = cylinderSDF(samplePoint, 2.0, cylinderRadius);
+    float cylinder1 = cylinderSDF(samplePoint * vec3(tan(time),tan(time),0) , 3.0, cylinderRadius);
     float cubeDist = cubeSDF(samplePoint);
-    return differenceSDF(cubeDist, sdTriPrism(samplePoint));
-
+    return unionSDF(cylinder1, sdTriPrism(samplePoint * vec3(cos(time),tan(time),.5)));
+    
 }
 
     float shortDistFunct(vec3 cam, vec3 dir, float start, float end) {
@@ -230,13 +229,13 @@ vec3 phongIllumination(vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 e
     vec3 light1Pos = vec3(4.0 * sin(lightTime),
                           2.0,
                           4.0 * cos(lightTime));
-    vec3 light1Intensity = vec3(0.4, 0.9, 0.4);
+    vec3 light1Intensity = vec3(0.4, 0.4, 0.4);
     
     color += phongContribForLight(k_d, k_s, alpha, p, eye,
                                   light1Pos,
                                   light1Intensity);
     
-    vec3 light2Pos = vec3(2.0 * tan(0.37 * lightTime),
+    vec3 light2Pos = vec3(2.0 * sin(0.37 * lightTime),
                           2.0 * cos(0.37 * lightTime),
                           2.0);
     vec3 light2Intensity = vec3(0.4, 0.4, 0.4);
@@ -261,8 +260,8 @@ vec3 phongIllumination(vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 e
 
          vec3 p = cam + dist * dir;
     
-    vec3 K_a = vec3(0.5, 0.2, 0.8);
-    vec3 K_d = vec3(0.7, 0.2, 0.2);
+    vec3 K_a = vec3(0.5, 0.2, 0.3);
+    vec3 K_d = vec3(0.7, 0.2, sin(lightTime));
     vec3 K_s = vec3(1.0, 1.0, 1.0);
     float shininess = 10.0;
     
